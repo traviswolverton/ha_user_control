@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 RUN pip3 install --no-cache-dir \
-    fastapi==0.111.0 \
+    fastapi==0.110.3 \
     uvicorn==0.29.0 \
     jinja2==3.1.4 \
     pyyaml \
