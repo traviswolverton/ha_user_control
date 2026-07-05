@@ -1,6 +1,6 @@
 name: "Notification Manager"
 description: "Manage notification groups, users, opt-outs, and snooze settings"
-version: "1.0.0"
+version: "1.0.1"
 slug: "notification_manager"
 init: false
 arch:

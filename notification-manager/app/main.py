@@ -10,11 +10,20 @@ app = FastAPI()
 templates = Jinja2Templates(directory="/app/templates")
 
 
+def _base(request: Request) -> str:
+    """HA ingress serves this app behind a per-session token prefix (e.g.
+    /api/hassio_ingress/<token>). Supervisor passes that prefix in the
+    X-Ingress-Path header on every proxied request; absolute paths like "/"
+    would instead point at HA's own root and 404."""
+    return request.headers.get("X-Ingress-Path", "")
+
+
 def _ctx(request: Request) -> dict:
     groups = ha.get_groups()
     users = ha.get_users()
     return {
         "request": request,
+        "base": _base(request),
         "groups": groups,
         "users": users,
         "opt_outs": ha.get_opt_outs(list(groups), list(users)),
@@ -30,7 +39,7 @@ async def index(request: Request):
 # ── Groups ────────────────────────────────────────────────────────────────────
 
 @app.post("/groups/add")
-async def add_group(name: str = Form(...), members: str = Form(...)):
+async def add_group(request: Request, name: str = Form(...), members: str = Form(...)):
     member_list = [m.strip() for m in members.split(",") if m.strip()]
     cm.add_group(name)
     ha.reload("input_text", "input_number", "timer")
@@ -39,65 +48,65 @@ async def add_group(name: str = Form(...), members: str = Form(...)):
     for user in ha.get_users():
         cm.add_user_group_boolean(user, name)
     ha.reload("input_boolean")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 @app.post("/groups/{group}/members")
-async def update_members(group: str, members: str = Form(...)):
+async def update_members(request: Request, group: str, members: str = Form(...)):
     member_list = [m.strip() for m in members.split(",") if m.strip()]
     ha.set_group_members(group, member_list)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 @app.post("/groups/{group}/delete")
-async def delete_group(group: str):
+async def delete_group(request: Request, group: str):
     cm.remove_group(group)
     ha.reload("input_text", "input_number", "timer", "input_boolean")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 # ── Users ─────────────────────────────────────────────────────────────────────
 
 @app.post("/users/add")
-async def add_user(username: str = Form(...), device: str = Form(...)):
+async def add_user(request: Request, username: str = Form(...), device: str = Form(...)):
     cm.add_user(username, device)
     ha.reload("input_text", "input_boolean")
     time.sleep(1)
     for group in ha.get_groups():
         cm.add_user_group_boolean(username, group)
     ha.reload("input_boolean")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 @app.post("/users/{user}/mute")
-async def toggle_mute(user: str, muted: str = Form(...)):
+async def toggle_mute(request: Request, user: str, muted: str = Form(...)):
     ha.set_muted(user, muted == "true")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 # ── Opt-outs ──────────────────────────────────────────────────────────────────
 
 @app.post("/opt-outs/{user}/{group}")
-async def toggle_opt_out(user: str, group: str, enabled: str = Form(...)):
+async def toggle_opt_out(request: Request, user: str, group: str, enabled: str = Form(...)):
     ha.set_opt_out(user, group, enabled == "true")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 # ── Snooze ────────────────────────────────────────────────────────────────────
 
 @app.post("/snooze/{group}/start")
-async def start_snooze(group: str):
+async def start_snooze(request: Request, group: str):
     ha.start_snooze(group)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 @app.post("/snooze/{group}/cancel")
-async def cancel_snooze(group: str):
+async def cancel_snooze(request: Request, group: str):
     ha.cancel_snooze(group)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)
 
 
 @app.post("/snooze/{group}/duration")
-async def set_duration(group: str, minutes: int = Form(...)):
+async def set_duration(request: Request, group: str, minutes: int = Form(...)):
     ha.set_snooze_duration(group, minutes)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"{_base(request)}/", status_code=303)

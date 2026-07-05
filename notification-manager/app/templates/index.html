@@ -18,7 +18,7 @@
         <div class="card h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span class="text-capitalize">{{ group_name.replace('_', ' ') }}</span>
-            <form method="post" action="/groups/{{ group_name }}/delete"
+            <form method="post" action="{{ base }}/groups/{{ group_name }}/delete"
                   onsubmit="return confirm('Delete the {{ group_name }} group and all its helpers?')">
               <button class="btn btn-sm btn-outline-danger py-0">
                 <i class="bi bi-trash"></i>
@@ -33,7 +33,7 @@
               <span class="text-muted small">No members</span>
               {% endfor %}
             </div>
-            <form method="post" action="/groups/{{ group_name }}/members">
+            <form method="post" action="{{ base }}/groups/{{ group_name }}/members">
               <div class="input-group input-group-sm">
                 <input type="text" class="form-control" name="members"
                        value="{{ members | join(',') }}" placeholder="travis,libby">
@@ -50,7 +50,7 @@
     <div class="card">
       <div class="card-header"><i class="bi bi-plus-circle me-1"></i>Add New Group</div>
       <div class="card-body">
-        <form method="post" action="/groups/add" class="row g-3">
+        <form method="post" action="{{ base }}/groups/add" class="row g-3">
           <div class="col-md-3">
             <label class="form-label small fw-semibold">Group Name</label>
             <input type="text" class="form-control" name="name"
@@ -91,7 +91,7 @@
               <td><code>{{ device if device not in ('unknown','unavailable','') else '—' }}</code></td>
               <td class="text-center">
                 {% set muted = opt_outs[user]['_muted'] %}
-                <form method="post" action="/users/{{ user }}/mute">
+                <form method="post" action="{{ base }}/users/{{ user }}/mute">
                   <input type="hidden" name="muted" value="{{ 'false' if muted else 'true' }}">
                   <button class="btn btn-sm {{ 'btn-warning' if muted else 'btn-outline-secondary' }}">
                     <i class="bi {{ 'bi-bell-slash-fill' if muted else 'bi-bell-fill' }} me-1"></i>
@@ -111,7 +111,7 @@
     <div class="card">
       <div class="card-header"><i class="bi bi-person-plus me-1"></i>Add New User</div>
       <div class="card-body">
-        <form method="post" action="/users/add" class="row g-3">
+        <form method="post" action="{{ base }}/users/add" class="row g-3">
           <div class="col-md-3">
             <label class="form-label small fw-semibold">Username</label>
             <input type="text" class="form-control" name="username"
@@ -157,7 +157,7 @@
                 {% for g in groups %}
                 <td class="text-center">
                   {% set on = opt_outs[user].get(g, true) %}
-                  <form method="post" action="/opt-outs/{{ user }}/{{ g }}">
+                  <form method="post" action="{{ base }}/opt-outs/{{ user }}/{{ g }}">
                     <input type="hidden" name="enabled" value="{{ 'false' if on else 'true' }}">
                     <button class="btn btn-sm {{ 'btn-success' if on else 'btn-outline-secondary' }}"
                             title="{{ 'Receiving — click to opt out' if on else 'Opted out — click to re-enable' }}">
@@ -198,7 +198,7 @@
             {% endif %}
           </div>
           <div class="card-body d-flex flex-column gap-3">
-            <form method="post" action="/snooze/{{ group_name }}/duration">
+            <form method="post" action="{{ base }}/snooze/{{ group_name }}/duration">
               <label class="form-label small fw-semibold text-muted">Snooze Duration</label>
               <div class="input-group input-group-sm">
                 <input type="number" class="form-control" name="minutes"
@@ -209,13 +209,13 @@
             </form>
 
             {% if state.active %}
-            <form method="post" action="/snooze/{{ group_name }}/cancel">
+            <form method="post" action="{{ base }}/snooze/{{ group_name }}/cancel">
               <button class="btn btn-warning w-100">
                 <i class="bi bi-bell-fill me-1"></i>Cancel Snooze
               </button>
             </form>
             {% else %}
-            <form method="post" action="/snooze/{{ group_name }}/start">
+            <form method="post" action="{{ base }}/snooze/{{ group_name }}/start">
               <button class="btn btn-outline-secondary w-100">
                 <i class="bi bi-bell-slash me-1"></i>Snooze {{ state.duration }} min
               </button>

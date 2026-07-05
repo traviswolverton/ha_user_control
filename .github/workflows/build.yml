@@ -34,6 +34,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read addon version
+        id: version
+        run: |
+          VERSION=$(grep -m1 '^version:' notification-manager/config.yaml | sed -E 's/version: *"?([^"]+)"?/\1/')
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -42,6 +48,6 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:1.0.0
+            ${{ env.IMAGE }}:${{ steps.version.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
