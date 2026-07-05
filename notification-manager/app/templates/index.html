@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block content %}
+
+<ul class="nav nav-tabs" id="tabs" role="tablist">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-groups"><i class="bi bi-people-fill me-1"></i>Groups</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-users"><i class="bi bi-person-fill me-1"></i>Users</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-optouts"><i class="bi bi-toggles me-1"></i>Opt-outs</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-snooze"><i class="bi bi-bell-slash-fill me-1"></i>Snooze</a></li>
+</ul>
+
+<div class="tab-content">
+
+  {# ── GROUPS ──────────────────────────────────────────────────────────────── #}
+  <div class="tab-pane fade show active" id="tab-groups">
+    <div class="row g-3 mb-4">
+      {% for group_name, members in groups.items() %}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">{{ group_name.replace('_', ' ') }}</span>
+            <form method="post" action="/groups/{{ group_name }}/delete"
+                  onsubmit="return confirm('Delete the {{ group_name }} group and all its helpers?')">
+              <button class="btn btn-sm btn-outline-danger py-0">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              {% for m in members %}
+              <span class="member-badge me-1">{{ m }}</span>
+              {% else %}
+              <span class="text-muted small">No members</span>
+              {% endfor %}
+            </div>
+            <form method="post" action="/groups/{{ group_name }}/members">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="members"
+                       value="{{ members | join(',') }}" placeholder="travis,libby">
+                <button class="btn btn-outline-primary" type="submit">Save</button>
+              </div>
+              <div class="form-text">Comma-separated usernames</div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-plus-circle me-1"></i>Add New Group</div>
+      <div class="card-body">
+        <form method="post" action="/groups/add" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold">Group Name</label>
+            <input type="text" class="form-control" name="name"
+                   placeholder="plex" pattern="[a-z0-9_]+" required>
+            <div class="form-text">Lowercase, underscores only</div>
+          </div>
+          <div class="col-md-7">
+            <label class="form-label small fw-semibold">Initial Members</label>
+            <input type="text" class="form-control" name="members"
+                   placeholder="travis,libby" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="bi bi-plus-lg me-1"></i>Add
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── USERS ───────────────────────────────────────────────────────────────── #}
+  <div class="tab-pane fade" id="tab-users">
+    <div class="card mb-4">
+      <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width:140px">User</th>
+              <th>Notification Device</th>
+              <th style="width:130px" class="text-center">Master Mute</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user, device in users.items() %}
+            <tr>
+              <td class="fw-semibold">{{ user }}</td>
+              <td><code>{{ device if device not in ('unknown','unavailable','') else '—' }}</code></td>
+              <td class="text-center">
+                {% set muted = opt_outs[user]['_muted'] %}
+                <form method="post" action="/users/{{ user }}/mute">
+                  <input type="hidden" name="muted" value="{{ 'false' if muted else 'true' }}">
+                  <button class="btn btn-sm {{ 'btn-warning' if muted else 'btn-outline-secondary' }}">
+                    <i class="bi {{ 'bi-bell-slash-fill' if muted else 'bi-bell-fill' }} me-1"></i>
+                    {{ 'Muted' if muted else 'Active' }}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-4">No users found</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-person-plus me-1"></i>Add New User</div>
+      <div class="card-body">
+        <form method="post" action="/users/add" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold">Username</label>
+            <input type="text" class="form-control" name="username"
+                   placeholder="caroline" pattern="[a-z0-9_]+" required>
+            <div class="form-text">Lowercase, underscores only</div>
+          </div>
+          <div class="col-md-7">
+            <label class="form-label small fw-semibold">Device Service Name</label>
+            <input type="text" class="form-control" name="device"
+                   placeholder="mobile_app_carolines_iphone_16" required>
+            <div class="form-text">Find it in Developer Tools → Services → notify.*</div>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="bi bi-plus-lg me-1"></i>Add
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── OPT-OUTS ────────────────────────────────────────────────────────────── #}
+  <div class="tab-pane fade" id="tab-optouts">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:140px">User</th>
+                {% for g in groups %}
+                <th class="text-center text-capitalize" style="min-width:120px">
+                  {{ g.replace('_', ' ') }}
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td class="fw-semibold">{{ user }}</td>
+                {% for g in groups %}
+                <td class="text-center">
+                  {% set on = opt_outs[user].get(g, true) %}
+                  <form method="post" action="/opt-outs/{{ user }}/{{ g }}">
+                    <input type="hidden" name="enabled" value="{{ 'false' if on else 'true' }}">
+                    <button class="btn btn-sm {{ 'btn-success' if on else 'btn-outline-secondary' }}"
+                            title="{{ 'Receiving — click to opt out' if on else 'Opted out — click to re-enable' }}">
+                      <i class="bi {{ 'bi-bell-fill' if on else 'bi-bell-slash' }}"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endfor %}
+              </tr>
+              {% else %}
+              <tr><td colspan="99" class="text-center text-muted py-4">No users found</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="form-text mt-2 ms-1">
+      <i class="bi bi-bell-fill text-success"></i> = receiving &nbsp;
+      <i class="bi bi-bell-slash text-secondary"></i> = opted out
+    </div>
+  </div>
+
+  {# ── SNOOZE ──────────────────────────────────────────────────────────────── #}
+  <div class="tab-pane fade" id="tab-snooze">
+    <div class="row g-3">
+      {% for group_name, state in snooze.items() %}
+      <div class="col-md-6">
+        <div class="card h-100 {{ 'snooze-active' if state.active else '' }}">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="text-capitalize">{{ group_name.replace('_', ' ') }}</span>
+            {% if state.active %}
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-clock me-1"></i>Snoozed{% if state.remaining %} · {{ state.remaining }}{% endif %}
+            </span>
+            {% else %}
+            <span class="badge bg-success-subtle text-success-emphasis">Active</span>
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column gap-3">
+            <form method="post" action="/snooze/{{ group_name }}/duration">
+              <label class="form-label small fw-semibold text-muted">Snooze Duration</label>
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control" name="minutes"
+                       value="{{ state.duration }}" min="5" max="480" step="5">
+                <span class="input-group-text">min</span>
+                <button class="btn btn-outline-secondary" type="submit">Set</button>
+              </div>
+            </form>
+
+            {% if state.active %}
+            <form method="post" action="/snooze/{{ group_name }}/cancel">
+              <button class="btn btn-warning w-100">
+                <i class="bi bi-bell-fill me-1"></i>Cancel Snooze
+              </button>
+            </form>
+            {% else %}
+            <form method="post" action="/snooze/{{ group_name }}/start">
+              <button class="btn btn-outline-secondary w-100">
+                <i class="bi bi-bell-slash me-1"></i>Snooze {{ state.duration }} min
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

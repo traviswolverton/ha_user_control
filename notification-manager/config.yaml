@@ -1,0 +1,20 @@
+name: "Notification Manager"
+description: "Manage notification groups, users, opt-outs, and snooze settings"
+version: "1.0.0"
+slug: "notification_manager"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+homeassistant_api: true
+ingress: true
+ingress_port: 8099
+ingress_entry: /
+panel_icon: mdi:bell-cog
+panel_title: Notify Manager
+options: {}
+schema: {}
+map:
+  - config:rw
