@@ -4,10 +4,7 @@ version: "1.0.0"
 slug: "notification_manager"
 init: false
 arch:
-  - aarch64
   - amd64
-  - armhf
-  - armv7
 image: "ghcr.io/traviswolverton/ha_user_control/notification-manager"
 homeassistant_api: true
 ingress: true

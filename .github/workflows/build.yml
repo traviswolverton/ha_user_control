@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: notification-manager
-          platforms: linux/amd64,linux/arm64/v8,linux/arm/v7
+          platforms: linux/amd64
           push: true
           tags: ${{ env.IMAGE }}:latest
           cache-from: type=gha
