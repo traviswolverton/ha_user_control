@@ -38,6 +38,8 @@ jobs:
           context: notification-manager
           platforms: linux/amd64
           push: true
-          tags: ${{ env.IMAGE }}:latest
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:1.0.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
