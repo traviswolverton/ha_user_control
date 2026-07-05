@@ -1,21 +1,17 @@
 from pathlib import Path
-from ruamel.yaml import YAML
+import yaml
 
 CONFIG_PATH = Path("/config/configuration.yaml")
-
-_yaml = YAML()
-_yaml.preserve_quotes = True
-_yaml.width = 4096
 
 
 def _load():
     with open(CONFIG_PATH) as f:
-        return _yaml.load(f)
+        return yaml.safe_load(f)
 
 
 def _save(config):
     with open(CONFIG_PATH, "w") as f:
-        _yaml.dump(config, f)
+        yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
 def add_group(group_name: str):
