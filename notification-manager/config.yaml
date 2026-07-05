@@ -8,6 +8,7 @@ arch:
   - amd64
   - armhf
   - armv7
+image: "ghcr.io/traviswolverton/ha_user_control/notification-manager"
 homeassistant_api: true
 ingress: true
 ingress_port: 8099
